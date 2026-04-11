@@ -688,17 +688,61 @@ const TIER_POINTS = { 1: 1, 2: 2, 3: 3 };
 const CAT_ICONS = { jewelry:'💍', fashion:'👗', experience:'✨', purchase:'🛍️', favor:'💌', trip:'✈️', other:'📦' };
 
 // ═══════════════════════════════════════════════
-// PERSISTENCE — namespaced per couple code
+// API — Supabase Edge Function proxy to Turso
 // ═══════════════════════════════════════════════
-function storageKey() { return 'nbbj_' + (coupleCode || 'default'); }
-function save() { localStorage.setItem(storageKey(), JSON.stringify(state)); }
-function load() {
-  try {
-    const s = localStorage.getItem(storageKey());
-    if (s) state = JSON.parse(s);
-    else state = { pins: { him: '1234', her: '1234' }, promises: [], bids: [], nextId: 1 };
-  } catch(e) { state = { pins: { him: '1234', her: '1234' }, promises: [], bids: [], nextId: 1 }; }
+const API = 'https://jcammaoxvjbvbiohfzpa.supabase.co/functions/v1/nbbj-api';
+
+async function api(path, body = null) {
+  const opts = body
+    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vault: coupleCode, ...body }) }
+    : { method: 'GET' };
+  const url = body ? `${API}${path}` : `${API}${path}?vault=${encodeURIComponent(coupleCode)}`;
+  const res = await fetch(url, opts);
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
 }
+
+async function loadFromDB() {
+  try {
+    // Load vault (creates if new), promises and bids in parallel
+    const [vaultRes, promisesRes, bidsRes] = await Promise.all([
+      api('/vault/get'),
+      api('/promises/list'),
+      api('/bids/list')
+    ]);
+    // Upsert vault if new
+    if (!vaultRes.vault) {
+      await api('/vault/upsert', { him_pin: '1234', her_pin: '1234' });
+      state.pins = { him: '1234', her: '1234' };
+    } else {
+      state.pins = { him: vaultRes.vault.him_pin || '1234', her: vaultRes.vault.her_pin || '1234' };
+    }
+    // Map DB rows to app state format
+    state.promises = (promisesRes.promises || []).map(p => ({
+      id: p.id, desc: p.desc, tier: p.tier, date: p.date, expiry: p.expiry,
+      notes: p.notes, status: p.status, fulfillDate: p.fulfill_date,
+      actualTier: p.actual_tier, rating: p.rating, verifyCode: p.verify_code
+    }));
+    state.bids = (bidsRes.bids || []).map(b => ({
+      id: b.id, name: b.name, value: b.value, cat: b.category,
+      offerTier: b.offer_tier, notes: b.notes, expires: b.expires,
+      status: b.status, date: b.date, counterOffer: b.counter_offer, counterNote: b.counter_note
+    }));
+    // Cache to localStorage as fallback
+    localStorage.setItem('nbbj_cache_' + coupleCode, JSON.stringify(state));
+  } catch(e) {
+    console.warn('DB load failed, using cache:', e);
+    // Fall back to localStorage cache
+    try {
+      const cached = localStorage.getItem('nbbj_cache_' + coupleCode);
+      if (cached) state = JSON.parse(cached);
+      else state = { pins: { him: '1234', her: '1234' }, promises: [], bids: [], nextId: 1 };
+    } catch(e2) { state = { pins: { him: '1234', her: '1234' }, promises: [], bids: [], nextId: 1 }; }
+  }
+}
+
+// Legacy save — keep localStorage in sync as offline cache
+function saveCache() { localStorage.setItem('nbbj_cache_' + coupleCode, JSON.stringify(state)); }
 
 // Track recent vault codes
 function getRecentCodes() {
@@ -745,12 +789,12 @@ function quickEnterCode(code) {
   activateVault(code);
 }
 
-function activateVault(code) {
+async function activateVault(code) {
   coupleCode = code;
-  load();
   addRecentCode(code);
   document.getElementById('login-vault-label').textContent = 'VAULT: ' + code;
   showScreen('login-screen');
+  try { await loadFromDB(); } catch(e) { console.warn('Vault load:', e); }
 }
 
 function switchVault() {
@@ -841,28 +885,34 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 // ═══════════════════════════════════════════════
 // PROMISES
 // ═══════════════════════════════════════════════
-function addPromise() {
+async function addPromise() {
   const desc = document.getElementById('p-desc').value.trim();
   const tier = parseInt(document.getElementById('p-tier').value);
   const date = document.getElementById('p-date').value || today();
   const expiry = document.getElementById('p-expiry').value || null;
   const notes = document.getElementById('p-notes').value.trim();
   if (!desc) { toast('Please add a description'); return; }
-  state.promises.push({ id: state.nextId++, desc, tier, date, expiry, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
-  save(); closeModal('add-promise-modal');
-  document.getElementById('p-desc').value=''; document.getElementById('p-notes').value='';
-  toast('Promise logged'); renderHim();
+  try {
+    const r = await api('/promises/add', { desc, tier, date, expiry, notes });
+    state.promises.push({ id: r.id, desc, tier, date, expiry, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+    saveCache(); closeModal('add-promise-modal');
+    document.getElementById('p-desc').value=''; document.getElementById('p-notes').value='';
+    toast('Promise logged'); renderHim();
+  } catch(e) { toast('Error saving — check connection'); }
 }
 
-function addHerPromise() {
+async function addHerPromise() {
   const desc = document.getElementById('hp-desc').value.trim();
   const tier = parseInt(document.getElementById('hp-tier').value);
   const date = document.getElementById('hp-date').value || today();
   if (!desc) { toast('Please describe the promise'); return; }
-  state.promises.push({ id: state.nextId++, desc, tier, date, expiry: null, notes: '', status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
-  save(); closeModal('her-promise-modal');
-  document.getElementById('hp-desc').value='';
-  toast('Promise recorded ✓'); renderHer();
+  try {
+    const r = await api('/promises/add', { desc, tier, date, expiry: null, notes: '' });
+    state.promises.push({ id: r.id, desc, tier, date, expiry: null, notes: '', status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+    saveCache(); closeModal('her-promise-modal');
+    document.getElementById('hp-desc').value='';
+    toast('Promise recorded ✓'); renderHer();
+  } catch(e) { toast('Error saving — check connection'); }
 }
 
 function openFulfillModal(id) {
@@ -875,57 +925,75 @@ function openFulfillModal(id) {
   document.getElementById('fulfill-rating').value = 5;
   openModal('fulfill-modal');
 }
-function fulfillPromise() {
+async function fulfillPromise() {
   const p = state.promises.find(x=>x.id===currentFulfillId);
   if (!p) return;
-  p.status = 'fulfilled';
-  p.fulfillDate = today();
-  p.actualTier = parseInt(document.getElementById('fulfill-tier').value);
-  p.verifyCode = document.getElementById('fulfill-code').value.trim();
-  p.rating = parseInt(document.getElementById('fulfill-rating').value);
-  save(); closeModal('fulfill-modal');
-  toast('✓ Promise fulfilled!'); renderHer(); renderHim();
+  const actual_tier = parseInt(document.getElementById('fulfill-tier').value);
+  const verify_code = document.getElementById('fulfill-code').value.trim();
+  const rating = parseInt(document.getElementById('fulfill-rating').value);
+  try {
+    await api('/promises/update', { id: p.id, status: 'fulfilled', fulfill_date: today(), actual_tier, rating, verify_code });
+    p.status = 'fulfilled'; p.fulfillDate = today(); p.actualTier = actual_tier; p.verifyCode = verify_code; p.rating = rating;
+    saveCache(); closeModal('fulfill-modal');
+    toast('✓ Promise fulfilled!'); renderHer(); renderHim();
+  } catch(e) { toast('Error saving — check connection'); }
 }
 
-function cancelPromise(id) {
+async function cancelPromise(id) {
   const p = state.promises.find(x=>x.id===id);
-  if (p) { p.status = 'cancelled'; save(); renderHim(); toast('Promise cancelled'); }
+  if (!p) return;
+  try {
+    await api('/promises/update', { id: p.id, status: 'cancelled' });
+    p.status = 'cancelled'; saveCache(); renderHim(); toast('Promise cancelled');
+  } catch(e) { toast('Error saving — check connection'); }
 }
 
 // ═══════════════════════════════════════════════
 // BIDS / AUCTIONS
 // ═══════════════════════════════════════════════
-function submitBid() {
+async function submitBid() {
   const name = document.getElementById('bid-name').value.trim();
   const value = parseFloat(document.getElementById('bid-value').value) || 0;
-  const cat = document.getElementById('bid-category').value;
-  const offerTier = document.getElementById('bid-offer-tier').value;
+  const category = document.getElementById('bid-category').value;
+  const offer_tier = document.getElementById('bid-offer-tier').value;
   const notes = document.getElementById('bid-notes').value.trim();
   const expires = document.getElementById('bid-expires').value || null;
   if (!name) { toast('Please describe what you want'); return; }
-  state.bids.push({ id: state.nextId++, name, value, cat, offerTier, notes, expires, status: 'pending', date: today(), counterOffer: null, counterNote: null });
-  save();
-  document.getElementById('bid-name').value=''; document.getElementById('bid-value').value='';
-  document.getElementById('bid-notes').value='';
-  toast('Bid submitted ✓'); renderHer();
+  try {
+    const r = await api('/bids/add', { name, value, category, offer_tier, notes, expires, date: today() });
+    state.bids.push({ id: r.id, name, value, cat: category, offerTier: offer_tier, notes, expires, status: 'pending', date: today(), counterOffer: null, counterNote: null });
+    saveCache();
+    document.getElementById('bid-name').value=''; document.getElementById('bid-value').value='';
+    document.getElementById('bid-notes').value='';
+    toast('Bid submitted ✓'); renderHer();
+  } catch(e) { toast('Error saving — check connection'); }
 }
 
-function acceptBid(id) {
+async function acceptBid(id) {
   const b = state.bids.find(x=>x.id===id);
   if (!b) return;
-  b.status = 'accepted';
-  // auto-create a promise entry for the agreed exchange
   const tierMap = { '1':1,'2':2,'3':3,'multi2':1,'multi3':1,'combo':2 };
   const tier = tierMap[b.offerTier] || 1;
   const count = b.offerTier === 'multi2' ? 2 : b.offerTier === 'multi3' ? 3 : b.offerTier === 'combo' ? 2 : 1;
-  for (let i=0;i<count;i++) {
-    state.promises.push({ id: state.nextId++, desc: `[Auction] ${b.name}`, tier, date: today(), expiry: null, notes: `Auto-created from accepted bid #${b.id}`, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
-  }
-  save(); toast(`Bid accepted — ${count} promise(s) logged`); renderHim(); renderHimAuctionFull();
+  try {
+    await api('/bids/update', { id: b.id, status: 'accepted' });
+    b.status = 'accepted';
+    for (let i=0;i<count;i++) {
+      const desc = `[Auction] ${b.name}`;
+      const notes = `Auto-created from accepted bid #${b.id}`;
+      const r = await api('/promises/add', { desc, tier, date: today(), expiry: null, notes });
+      state.promises.push({ id: r.id, desc, tier, date: today(), expiry: null, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+    }
+    saveCache(); toast(`Bid accepted — ${count} promise(s) logged`); renderHim(); renderHimAuctionFull();
+  } catch(e) { toast('Error saving — check connection'); }
 }
-function rejectBid(id) {
+async function rejectBid(id) {
   const b = state.bids.find(x=>x.id===id);
-  if (b) { b.status = 'rejected'; save(); toast('Bid rejected'); renderHim(); renderHimAuctionFull(); }
+  if (!b) return;
+  try {
+    await api('/bids/update', { id: b.id, status: 'rejected' });
+    b.status = 'rejected'; saveCache(); toast('Bid rejected'); renderHim(); renderHimAuctionFull();
+  } catch(e) { toast('Error saving — check connection'); }
 }
 function openCounter(id) {
   const b = state.bids.find(x=>x.id===id);
@@ -936,13 +1004,16 @@ function openCounter(id) {
   document.getElementById('counter-note').value = '';
   openModal('counter-modal');
 }
-function counterBid() {
+async function counterBid() {
   const b = state.bids.find(x=>x.id===currentCounterId);
   if (!b) return;
-  b.status = 'countered';
-  b.counterOffer = document.getElementById('counter-offer').value.trim();
-  b.counterNote = document.getElementById('counter-note').value.trim();
-  save(); closeModal('counter-modal'); toast('Counter sent'); renderHim(); renderHimAuctionFull();
+  const counter_offer = document.getElementById('counter-offer').value.trim();
+  const counter_note = document.getElementById('counter-note').value.trim();
+  try {
+    await api('/bids/update', { id: b.id, status: 'countered', counter_offer, counter_note });
+    b.status = 'countered'; b.counterOffer = counter_offer; b.counterNote = counter_note;
+    saveCache(); closeModal('counter-modal'); toast('Counter sent'); renderHim(); renderHimAuctionFull();
+  } catch(e) { toast('Error saving — check connection'); }
 }
 
 // ═══════════════════════════════════════════════
