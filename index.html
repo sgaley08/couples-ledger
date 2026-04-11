@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="National Bank of BJ">
+<meta name="theme-color" content="#0a0a0f">
+<title>National Bank of BJ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #12121a;
+  --bg3: #1a1a26;
+  --bg4: #22223200;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0eff6;
+  --text2: #9998b0;
+  --text3: #5a5970;
+  --him: #3b82f6;
+  --him-light: #93c5fd;
+  --him-dim: rgba(59,130,246,0.12);
+  --him-mid: rgba(59,130,246,0.25);
+  --her: #e879a0;
+  --her-light: #fbcfe8;
+  --her-dim: rgba(232,121,160,0.12);
+  --her-mid: rgba(232,121,160,0.25);
+  --gold: #f59e0b;
+  --gold-dim: rgba(245,158,11,0.15);
+  --green: #10b981;
+  --green-dim: rgba(16,185,129,0.12);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --amber: #f59e0b;
+  --r: 14px;
+  --r-sm: 8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); }
+body { font-family: 'DM Sans', sans-serif; color: var(--text); }
+
+/* ── SCREENS ── */
+.screen { position: fixed; inset: 0; overflow-y: auto; overflow-x: hidden; background: var(--bg); display: none; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ── LOGIN ── */
+#login-screen { align-items: center; justify-content: center; }
+.login-wrap { width: 100%; max-width: 360px; padding: 2rem 1.5rem; text-align: center; }
+.login-logo { font-family: 'Playfair Display', serif; font-size: 42px; color: var(--text); letter-spacing: -1px; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3rem; font-family: 'DM Mono', monospace; }
+.login-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 2rem; }
+.login-card { border-radius: var(--r); border: 0.5px solid var(--border); padding: 1.5rem 1rem; cursor: pointer; transition: all 0.2s; background: var(--bg2); position: relative; overflow: hidden; }
+.login-card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s; }
+.login-card.him::before { background: var(--him-dim); }
+.login-card.her::before { background: var(--her-dim); }
+.login-card:hover::before, .login-card:active::before { opacity: 1; }
+.login-card:active { transform: scale(0.97); }
+.login-card-icon { font-size: 32px; margin-bottom: 8px; }
+.login-card-name { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 4px; }
+.login-card.him .login-card-name { color: var(--him-light); }
+.login-card.her .login-card-name { color: var(--her-light); }
+.login-card-role { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+
+/* ── PIN SCREEN ── */
+#pin-screen { align-items: center; justify-content: center; }
+.pin-wrap { width: 100%; max-width: 320px; padding: 2rem 1.5rem; text-align: center; }
+.pin-title { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 6px; }
+.pin-subtitle { font-size: 13px; color: var(--text3); margin-bottom: 2rem; }
+.pin-dots { display: flex; gap: 12px; justify-content: center; margin-bottom: 2rem; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border2); transition: all 0.15s; }
+.pin-dot.filled.him { background: var(--him); border-color: var(--him); }
+.pin-dot.filled.her { background: var(--her); border-color: var(--her); }
+.pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 260px; margin: 0 auto 1rem; }
+.pin-key { aspect-ratio: 1; border-radius: 50%; border: 0.5px solid var(--border); background: var(--bg2); font-size: 20px; font-weight: 300; cursor: pointer; transition: all 0.1s; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; }
+.pin-key:active { transform: scale(0.92); }
+.pin-key.him:active { background: var(--him-dim); border-color: var(--him); color: var(--him-light); }
+.pin-key.her:active { background: var(--her-dim); border-color: var(--her); color: var(--her-light); }
+.pin-key.del { font-size: 15px; color: var(--text3); }
+.pin-error { color: var(--red); font-size: 13px; min-height: 20px; }
+.pin-back { font-size: 13px; color: var(--text3); cursor: pointer; margin-top: 1.5rem; display: inline-block; }
+.pin-back:hover { color: var(--text2); }
+
+/* ── APP SHELL ── */
+#him-screen, #her-screen { padding-top: calc(var(--safe-top) + 0px); padding-bottom: calc(var(--safe-bot) + 64px); }
+.app-header { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0.75rem 1.25rem; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(10px); }
+.app-header-title { font-family: 'Playfair Display', serif; font-size: 20px; }
+.app-header-title.him { color: var(--him-light); }
+.app-header-title.her { color: var(--her-light); }
+.app-header-user { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.logout-btn { font-size: 12px; color: var(--text3); cursor: pointer; padding: 4px 10px; border: 0.5px solid var(--border); border-radius: 20px; }
+.logout-btn:active { background: var(--bg2); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg2); border-top: 0.5px solid var(--border); padding: 8px 0; padding-bottom: calc(8px + var(--safe-bot)); display: flex; z-index: 20; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 4px; transition: all 0.15s; }
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.03em; transition: color 0.15s; }
+.nav-item.active.him .nav-label { color: var(--him-light); }
+.nav-item.active.her .nav-label { color: var(--her-light); }
+
+/* ── CONTENT PANE ── */
+.content-pane { display: none; padding: 1.25rem; animation: fadeUp 0.2s ease; }
+.content-pane.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── METRIC CARDS ── */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+.metric { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
+.metric-label { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; }
+.metric-value { font-size: 28px; font-weight: 500; line-height: 1; }
+.metric-value.him { color: var(--him-light); }
+.metric-value.her { color: var(--her-light); }
+.metric-value.green { color: var(--green); }
+.metric-value.amber { color: var(--amber); }
+.metric-value.red { color: var(--red); }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+/* ── SECTION HEADINGS ── */
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.section-title { font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+
+/* ── CARDS ── */
+.card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem; margin-bottom: 10px; }
+.card-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.card-meta { font-size: 12px; color: var(--text3); }
+
+/* ── PROMISE ITEM ── */
+.promise-item { border-bottom: 0.5px solid var(--border); padding: 10px 0; }
+.promise-item:last-child { border-bottom: none; }
+.promise-row { display: flex; align-items: center; gap: 8px; }
+.promise-desc { flex: 1; font-size: 14px; color: var(--text); }
+.promise-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 3px; }
+.promise-actions { display: flex; gap: 6px; margin-top: 8px; }
+
+/* ── BADGES ── */
+.badge { font-size: 10px; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+.badge.tier-1 { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.badge.tier-2 { background: rgba(245,158,11,0.15); color: #fcd34d; }
+.badge.tier-3 { background: rgba(232,121,160,0.15); color: #fbcfe8; }
+.badge.pending { background: rgba(245,158,11,0.12); color: #fcd34d; }
+.badge.fulfilled { background: rgba(16,185,129,0.12); color: #6ee7b7; }
+.badge.expired { background: rgba(239,68,68,0.1); color: #fca5a5; }
+.badge.cancelled { background: rgba(90,89,112,0.2); color: #9998b0; }
+.badge.accepted { background: rgba(16,185,129,0.12); color: #6ee7b7; }
+.badge.rejected { background: rgba(239,68,68,0.1); color: #fca5a5; }
+.badge.countered { background: rgba(139,92,246,0.12); color: #c4b5fd; }
+
+/* ── BUTTONS ── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: var(--r-sm); border: 0.5px solid var(--border); background: var(--bg3); color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.btn:active { transform: scale(0.97); }
+.btn.him { background: var(--him-dim); border-color: rgba(59,130,246,0.3); color: var(--him-light); }
+.btn.her { background: var(--her-dim); border-color: rgba(232,121,160,0.3); color: var(--her-light); }
+.btn.sm { padding: 6px 12px; font-size: 12px; }
+.btn.green { background: var(--green-dim); border-color: rgba(16,185,129,0.3); color: #6ee7b7; }
+.btn.red { background: var(--red-dim); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+.btn.amber { background: var(--gold-dim); border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+.btn.full { width: 100%; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; animation: fadeIn 0.15s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 20px 20px 0 0; padding: 1.5rem; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.22s ease; padding-bottom: calc(1.5rem + var(--safe-bot)); }
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 1.25rem; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 1.25rem; }
+
+/* ── FORM ── */
+.field { margin-bottom: 14px; }
+.field label { font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); display: block; margin-bottom: 6px; }
+.field input, .field select, .field textarea { width: 100%; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--r-sm); padding: 10px 12px; color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--him); }
+.field select option { background: var(--bg2); }
+.field textarea { resize: none; height: 72px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 1.25rem; }
+
+/* ── LEDGER TABLE ── */
+.ledger-wrap { overflow-x: auto; margin: 0 -1.1rem; padding: 0 1.1rem; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 500px; }
+th { text-align: left; padding: 6px 8px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: var(--text3); text-transform: uppercase; border-bottom: 0.5px solid var(--border); }
+td { padding: 9px 8px; border-bottom: 0.5px solid var(--border); color: var(--text2); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+.cr { color: var(--red); font-family: 'DM Mono', monospace; }
+.dr { color: var(--green); font-family: 'DM Mono', monospace; }
+.bal { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text); }
+
+/* ── CREDIT SCORE ── */
+.score-hero { text-align: center; padding: 1.5rem 0; }
+.score-num { font-family: 'Playfair Display', serif; font-size: 72px; line-height: 1; }
+.score-band { font-size: 13px; font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+.score-gauge { position: relative; height: 12px; background: linear-gradient(to right, #ef4444, #f59e0b, #10b981); border-radius: 6px; margin: 1.25rem 0 0.5rem; overflow: hidden; }
+.score-gauge-cover { position: absolute; right: 0; top: 0; bottom: 0; background: var(--bg2); border-radius: 0 6px 6px 0; transition: width 0.6s cubic-bezier(.22,.68,0,1.2); }
+.score-range { display: flex; justify-content: space-between; font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text3); margin-bottom: 1.5rem; }
+.factor-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.factor-name { font-size: 12px; color: var(--text2); width: 140px; flex-shrink: 0; }
+.factor-bar { flex: 1; height: 5px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
+.factor-fill { height: 100%; border-radius: 5px; transition: width 0.5s ease; }
+.factor-pct { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3); width: 32px; text-align: right; }
+.insight-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; color: var(--text2); }
+.insight-item:last-child { border-bottom: none; }
+.insight-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+
+/* ── AUCTION CARD ── */
+.auction-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem; margin-bottom: 10px; }
+.auction-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.auction-name { font-size: 15px; font-weight: 500; color: var(--text); }
+.auction-value { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--gold); }
+.auction-offer { background: var(--bg3); border-radius: var(--r-sm); padding: 8px 12px; font-size: 12px; color: var(--text3); margin: 8px 0; border-left: 2px solid var(--her); }
+.auction-offer strong { color: var(--her-light); }
+.auction-footer { display: flex; gap: 8px; margin-top: 10px; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 2.5rem 1rem; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; color: var(--text3); }
+
+/* ── TOAST ── */
+#toast { position: fixed; top: calc(var(--safe-top) + 16px); left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 30px; padding: 10px 20px; font-size: 13px; color: var(--text); z-index: 100; transition: transform 0.3s cubic-bezier(.22,.68,0,1.2); white-space: nowrap; }
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── NOTIFICATION DOT ── */
+.notif-dot-badge { width: 7px; height: 7px; background: var(--her); border-radius: 50%; position: absolute; top: 6px; right: calc(50% - 16px); }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- LOGIN SCREEN -->
+<div class="screen active" id="login-screen">
+  <div class="login-wrap">
+    <div class="login-logo">National Bank of BJ</div>
+    <div class="login-sub">Est. $(date +%Y)</div>
+    <div class="login-cards">
+      <div class="login-card him" onclick="startLogin('him')">
+        <div class="login-card-icon">⚡</div>
+        <div class="login-card-name">His view</div>
+        <div class="login-card-role">The Ledger</div>
+      </div>
+      <div class="login-card her" onclick="startLogin('her')">
+        <div class="login-card-icon">✦</div>
+        <div class="login-card-name">Her view</div>
+        <div class="login-card-role">The Exchange</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center">
+      First time? Default PIN is <strong style="color:var(--text2)">1234</strong><br>
+      <span style="font-size:10px;opacity:0.6">Change it in Settings after login</span>
+    </div>
+  </div>
+</div>
+
+<!-- PIN SCREEN -->
+<div class="screen" id="pin-screen">
+  <div class="pin-wrap">
+    <div class="pin-title" id="pin-title">Enter PIN</div>
+    <div class="pin-subtitle" id="pin-subtitle">National Bank of BJ</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-grid" id="pin-grid">
+      <div class="pin-key" onclick="pinKey('1')">1</div>
+      <div class="pin-key" onclick="pinKey('2')">2</div>
+      <div class="pin-key" onclick="pinKey('3')">3</div>
+      <div class="pin-key" onclick="pinKey('4')">4</div>
+      <div class="pin-key" onclick="pinKey('5')">5</div>
+      <div class="pin-key" onclick="pinKey('6')">6</div>
+      <div class="pin-key" onclick="pinKey('7')">7</div>
+      <div class="pin-key" onclick="pinKey('8')">8</div>
+      <div class="pin-key" onclick="pinKey('9')">9</div>
+      <div class="pin-key" style="visibility:hidden"></div>
+      <div class="pin-key" onclick="pinKey('0')">0</div>
+      <div class="pin-key del" onclick="pinDel()">⌫</div>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-back" onclick="goLogin()">← Back</div>
+  </div>
+</div>
+
+<!-- HIM SCREEN -->
+<div class="screen" id="him-screen">
+  <div class="app-header">
+    <div>
+      <div class="app-header-title him">National Bank of BJ</div>
+      <div class="app-header-user">HIS VIEW</div>
+    </div>
+    <div class="logout-btn" onclick="logout()">Sign out</div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="content-pane active" id="him-dashboard">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Total promised</div><div class="metric-value him" id="hm-total">0</div><div class="metric-sub">all time</div></div>
+      <div class="metric"><div class="metric-label">Fulfilled</div><div class="metric-value green" id="hm-fulfilled">0</div><div class="metric-sub">delivered</div></div>
+      <div class="metric"><div class="metric-label">Outstanding</div><div class="metric-value amber" id="hm-outstanding">0</div><div class="metric-sub">still owed</div></div>
+      <div class="metric"><div class="metric-label">Her credit</div><div class="metric-value" id="hm-credit" style="font-size:22px">—</div><div class="metric-sub" id="hm-credit-band">calculating</div></div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">Open promises</div>
+      <button class="btn sm him" onclick="openModal('add-promise-modal')">+ Promise</button>
+    </div>
+    <div id="him-open-list"></div>
+
+    <div class="section-head" style="margin-top:1.25rem">
+      <div class="section-title">Auction inbox</div>
+    </div>
+    <div id="him-auction-inbox"></div>
+  </div>
+
+  <!-- Ledger -->
+  <div class="content-pane" id="him-ledger">
+    <div class="section-head">
+      <div class="section-title">Double-entry ledger</div>
+    </div>
+    <div class="card">
+      <div class="ledger-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Entry</th><th>Tier</th>
+            <th style="text-align:right">Liability</th>
+            <th style="text-align:right">Fulfilled</th>
+            <th style="text-align:right">Balance</th>
+          </tr></thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auctions full -->
+  <div class="content-pane" id="him-auctions">
+    <div class="section-head">
+      <div class="section-title">Bids from her</div>
+    </div>
+    <div id="him-auction-full"></div>
+  </div>
+
+  <!-- Credit Report -->
+  <div class="content-pane" id="him-credit">
+    <div class="card">
+      <div class="score-hero">
+        <div class="score-num" id="cr-score">—</div>
+        <div class="score-band" id="cr-band">—</div>
+      </div>
+      <div class="score-gauge"><div class="score-gauge-cover" id="cr-cover" style="width:100%"></div></div>
+      <div class="score-range"><span>0</span><span>500</span><span>580</span><span>670</span><span>750</span><span>850</span></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:14px">Score factors</div>
+      <div id="cr-factors"></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:10px">Insights</div>
+      <div id="cr-insights"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav Him -->
+  <div class="bottom-nav" id="him-nav">
+    <div class="nav-item active him" onclick="himTab('dashboard',this)">
+      <div class="nav-icon">⚡</div><div class="nav-label">Dashboard</div>
+    </div>
+    <div class="nav-item" onclick="himTab('ledger',this)" style="position:relative">
+      <div class="nav-icon">📒</div><div class="nav-label">Ledger</div>
+    </div>
+    <div class="nav-item" onclick="himTab('auctions',this)" style="position:relative" id="him-nav-auctions">
+      <div class="nav-icon">🏷️</div><div class="nav-label">Bids</div>
+    </div>
+    <div class="nav-item" onclick="himTab('credit',this)">
+      <div class="nav-icon">📊</div><div class="nav-label">Credit</div>
+    </div>
+  </div>
+</div>
+
+<!-- HER SCREEN -->
+<div class="screen" id="her-screen">
+  <div class="app-header">
+    <div>
+      <div class="app-header-title her">The Exchange</div>
+      <div class="app-header-user">HER VIEW</div>
+    </div>
+    <div class="logout-btn" onclick="logout()">Sign out</div>
+  </div>
+
+  <!-- Her Dashboard -->
+  <div class="content-pane active" id="her-dashboard">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Promised</div><div class="metric-value her" id="fm-total">0</div><div class="metric-sub">all time</div></div>
+      <div class="metric"><div class="metric-label">Fulfilled</div><div class="metric-value green" id="fm-fulfilled">0</div><div class="metric-sub">delivered</div></div>
+      <div class="metric"><div class="metric-label">Outstanding</div><div class="metric-value amber" id="fm-outstanding">0</div><div class="metric-sub">still owed</div></div>
+      <div class="metric"><div class="metric-label">Credit score</div><div class="metric-value" id="fm-credit" style="font-size:22px">—</div><div class="metric-sub" id="fm-credit-band">your score</div></div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">My open promises</div>
+      <button class="btn sm her" onclick="openModal('her-promise-modal')">+ Promise</button>
+    </div>
+    <div id="her-open-list"></div>
+
+    <div class="section-head" style="margin-top:1.25rem">
+      <div class="section-title">My recent bids</div>
+    </div>
+    <div id="her-recent-bids"></div>
+  </div>
+
+  <!-- Her Fulfill -->
+  <div class="content-pane" id="her-fulfill">
+    <div class="section-head">
+      <div class="section-title">Fulfill a promise</div>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Tap a pending promise to mark it complete and verify.</p>
+    <div id="her-fulfill-list"></div>
+  </div>
+
+  <!-- Her Bid -->
+  <div class="content-pane" id="her-bid">
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="modal-title" style="font-size:18px;margin-bottom:1rem">Place a bid</div>
+      <div class="field">
+        <label>What do you want?</label>
+        <input type="text" id="bid-name" placeholder="e.g. New handbag, weekend getaway..." />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Estimated value ($)</label>
+          <input type="number" id="bid-value" placeholder="0" />
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="bid-category">
+            <option value="jewelry">Jewelry</option>
+            <option value="fashion">Fashion</option>
+            <option value="experience">Experience</option>
+            <option value="purchase">Large purchase</option>
+            <option value="favor">Favor</option>
+            <option value="trip">Trip / travel</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Offering in exchange</label>
+        <select id="bid-offer-tier">
+          <option value="1">1× Standard promise</option>
+          <option value="2">1× Deluxe promise</option>
+          <option value="3">1× Premium promise</option>
+          <option value="multi2">2× Standard promises</option>
+          <option value="multi3">3× Standard promises</option>
+          <option value="combo">1× Deluxe + 1× Standard</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Notes / pitch</label>
+        <textarea id="bid-notes" placeholder="Make your case..."></textarea>
+      </div>
+      <div class="field">
+        <label>Bid expires</label>
+        <input type="date" id="bid-expires" />
+      </div>
+      <button class="btn her full" onclick="submitBid()" style="margin-top:4px">Submit bid →</button>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">Pre-approval status</div>
+    </div>
+    <div class="card" id="preapproval-card">
+      <div style="font-size:13px;color:var(--text3)">Your pre-approval limit is based on your credit score.</div>
+      <div style="font-size:22px;font-weight:500;color:var(--gold);margin-top:8px" id="preapproval-amount">—</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px" id="preapproval-note">calculate credit score to unlock</div>
+    </div>
+  </div>
+
+  <!-- Her Bids history -->
+  <div class="content-pane" id="her-bids">
+    <div class="section-head">
+      <div class="section-title">My bids</div>
+    </div>
+    <div id="her-bids-list"></div>
+  </div>
+
+  <!-- Bottom Nav Her -->
+  <div class="bottom-nav" id="her-nav">
+    <div class="nav-item active her" onclick="herTab('dashboard',this)">
+      <div class="nav-icon">✦</div><div class="nav-label">Home</div>
+    </div>
+    <div class="nav-item" onclick="herTab('fulfill',this)">
+      <div class="nav-icon">✓</div><div class="nav-label">Fulfill</div>
+    </div>
+    <div class="nav-item" onclick="herTab('bid',this)">
+      <div class="nav-icon">🏷️</div><div class="nav-label">Bid</div>
+    </div>
+    <div class="nav-item" onclick="herTab('bids',this)">
+      <div class="nav-icon">📋</div><div class="nav-label">My bids</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- Add Promise Modal (Him logs a new promise she made) -->
+<div class="modal-overlay" id="add-promise-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Log a new promise</div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="p-desc" placeholder="What was promised?" />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Tier</label>
+        <select id="p-tier">
+          <option value="1">Tier 1 — Standard</option>
+          <option value="2">Tier 2 — Deluxe</option>
+          <option value="3">Tier 3 — Premium</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Date promised</label>
+        <input type="date" id="p-date" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Expiry date (optional)</label>
+      <input type="date" id="p-expiry" />
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="p-notes" placeholder="Context, conditions..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="closeModal('add-promise-modal')">Cancel</button>
+      <button class="btn him full" onclick="addPromise()">Log promise</button>
+    </div>
+  </div>
+</div>
+
+<!-- Her Promise Modal -->
+<div class="modal-overlay" id="her-promise-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Make a promise</div>
+    <div class="field">
+      <label>What are you promising?</label>
+      <input type="text" id="hp-desc" placeholder="Describe the promise..." />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Tier</label>
+        <select id="hp-tier">
+          <option value="1">Tier 1 — Standard</option>
+          <option value="2">Tier 2 — Deluxe</option>
+          <option value="3">Tier 3 — Premium</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>By when</label>
+        <input type="date" id="hp-date" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="closeModal('her-promise-modal')">Cancel</button>
+      <button class="btn her full" onclick="addHerPromise()">Make promise</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fulfill Modal -->
+<div class="modal-overlay" id="fulfill-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Fulfill promise</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:1rem" id="fulfill-promise-desc"></div>
+    <div class="field">
+      <label>Actual tier delivered</label>
+      <select id="fulfill-tier">
+        <option value="1">Tier 1 — Standard</option>
+        <option value="2">Tier 2 — Deluxe</option>
+        <option value="3">Tier 3 — Premium</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Verification code / note</label>
+      <input type="text" id="fulfill-code" placeholder="Agreed word or note..." />
+    </div>
+    <div class="field">
+      <label>Rating (1–5)</label>
+      <select id="fulfill-rating">
+        <option value="5">⭐⭐⭐⭐⭐ 5 — Exceptional</option>
+        <option value="4">⭐⭐⭐⭐ 4 — Great</option>
+        <option value="3">⭐⭐⭐ 3 — Good</option>
+        <option value="2">⭐⭐ 2 — Fair</option>
+        <option value="1">⭐ 1 — Poor</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="closeModal('fulfill-modal')">Cancel</button>
+      <button class="btn green full" onclick="fulfillPromise()">Mark fulfilled ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Counter Bid Modal -->
+<div class="modal-overlay" id="counter-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Counter bid</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:1rem" id="counter-bid-name"></div>
+    <div class="field">
+      <label>Your counter offer (what you require instead)</label>
+      <input type="text" id="counter-offer" placeholder="e.g. 2× Deluxe + 1× Standard..." />
+    </div>
+    <div class="field">
+      <label>Note to her</label>
+      <textarea id="counter-note" placeholder="Explain your counter..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="closeModal('counter-modal')">Cancel</button>
+      <button class="btn amber full" onclick="counterBid()">Send counter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let state = {
+  pins: { him: '1234', her: '1234' },
+  promises: [],
+  bids: [],
+  nextId: 1
+};
+
+let loginTarget = null;
+let pinInput = '';
+let currentFulfillId = null;
+let currentCounterId = null;
+
+const TIER_NAMES = { 1: 'Standard', 2: 'Deluxe', 3: 'Premium' };
+const TIER_POINTS = { 1: 1, 2: 2, 3: 3 };
+const CAT_ICONS = { jewelry:'💍', fashion:'👗', experience:'✨', purchase:'🛍️', favor:'💌', trip:'✈️', other:'📦' };
+
+// ═══════════════════════════════════════════════
+// PERSISTENCE
+// ═══════════════════════════════════════════════
+function save() { localStorage.setItem('ledger_state', JSON.stringify(state)); }
+function load() {
+  try {
+    const s = localStorage.getItem('ledger_state');
+    if (s) state = JSON.parse(s);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goLogin() { loginTarget = null; pinInput = ''; showScreen('login-screen'); }
+function logout() { goLogin(); }
+
+function startLogin(who) {
+  loginTarget = who;
+  pinInput = '';
+  updatePinDots();
+  document.getElementById('pin-title').textContent = who === 'him' ? 'His PIN' : 'Her PIN';
+  document.getElementById('pin-subtitle').textContent = who === 'him' ? 'National Bank of BJ' : 'The Exchange';
+  document.getElementById('pin-error').textContent = '';
+  const keys = document.querySelectorAll('.pin-key');
+  keys.forEach(k => { k.classList.remove('him','her'); k.classList.add(who); });
+  showScreen('pin-screen');
+}
+
+function pinKey(d) {
+  if (pinInput.length >= 4) return;
+  pinInput += d;
+  updatePinDots();
+  if (pinInput.length === 4) setTimeout(checkPin, 120);
+}
+function pinDel() { pinInput = pinInput.slice(0,-1); updatePinDots(); }
+function updatePinDots() {
+  for (let i=0;i<4;i++) {
+    const d = document.getElementById('d'+i);
+    d.classList.remove('filled','him','her');
+    if (i < pinInput.length) { d.classList.add('filled', loginTarget); }
+  }
+}
+function checkPin() {
+  if (pinInput === state.pins[loginTarget]) {
+    document.getElementById('pin-error').textContent = '';
+    if (loginTarget === 'him') { renderHim(); showScreen('him-screen'); }
+    else { renderHer(); showScreen('her-screen'); }
+  } else {
+    document.getElementById('pin-error').textContent = 'Incorrect PIN. Try again.';
+    pinInput = ''; updatePinDots();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function himTab(tab, el) {
+  document.querySelectorAll('#him-screen .content-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('him-'+tab).classList.add('active');
+  document.querySelectorAll('#him-nav .nav-item').forEach(n => n.classList.remove('active','him'));
+  el.classList.add('active','him');
+  if (tab === 'ledger') renderLedger();
+  if (tab === 'credit') renderCreditReport();
+  if (tab === 'auctions') renderHimAuctionFull();
+}
+function herTab(tab, el) {
+  document.querySelectorAll('#her-screen .content-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('her-'+tab).classList.add('active');
+  document.querySelectorAll('#her-nav .nav-item').forEach(n => n.classList.remove('active','her'));
+  el.classList.add('active','her');
+  if (tab === 'fulfill') renderHerFulfill();
+  if (tab === 'bids') renderHerBids();
+}
+
+// ═══════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════
+// PROMISES
+// ═══════════════════════════════════════════════
+function addPromise() {
+  const desc = document.getElementById('p-desc').value.trim();
+  const tier = parseInt(document.getElementById('p-tier').value);
+  const date = document.getElementById('p-date').value || today();
+  const expiry = document.getElementById('p-expiry').value || null;
+  const notes = document.getElementById('p-notes').value.trim();
+  if (!desc) { toast('Please add a description'); return; }
+  state.promises.push({ id: state.nextId++, desc, tier, date, expiry, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+  save(); closeModal('add-promise-modal');
+  document.getElementById('p-desc').value=''; document.getElementById('p-notes').value='';
+  toast('Promise logged'); renderHim();
+}
+
+function addHerPromise() {
+  const desc = document.getElementById('hp-desc').value.trim();
+  const tier = parseInt(document.getElementById('hp-tier').value);
+  const date = document.getElementById('hp-date').value || today();
+  if (!desc) { toast('Please describe the promise'); return; }
+  state.promises.push({ id: state.nextId++, desc, tier, date, expiry: null, notes: '', status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+  save(); closeModal('her-promise-modal');
+  document.getElementById('hp-desc').value='';
+  toast('Promise recorded ✓'); renderHer();
+}
+
+function openFulfillModal(id) {
+  const p = state.promises.find(x=>x.id===id);
+  if (!p) return;
+  currentFulfillId = id;
+  document.getElementById('fulfill-promise-desc').textContent = p.desc;
+  document.getElementById('fulfill-tier').value = p.tier;
+  document.getElementById('fulfill-code').value = '';
+  document.getElementById('fulfill-rating').value = 5;
+  openModal('fulfill-modal');
+}
+function fulfillPromise() {
+  const p = state.promises.find(x=>x.id===currentFulfillId);
+  if (!p) return;
+  p.status = 'fulfilled';
+  p.fulfillDate = today();
+  p.actualTier = parseInt(document.getElementById('fulfill-tier').value);
+  p.verifyCode = document.getElementById('fulfill-code').value.trim();
+  p.rating = parseInt(document.getElementById('fulfill-rating').value);
+  save(); closeModal('fulfill-modal');
+  toast('✓ Promise fulfilled!'); renderHer(); renderHim();
+}
+
+function cancelPromise(id) {
+  const p = state.promises.find(x=>x.id===id);
+  if (p) { p.status = 'cancelled'; save(); renderHim(); toast('Promise cancelled'); }
+}
+
+// ═══════════════════════════════════════════════
+// BIDS / AUCTIONS
+// ═══════════════════════════════════════════════
+function submitBid() {
+  const name = document.getElementById('bid-name').value.trim();
+  const value = parseFloat(document.getElementById('bid-value').value) || 0;
+  const cat = document.getElementById('bid-category').value;
+  const offerTier = document.getElementById('bid-offer-tier').value;
+  const notes = document.getElementById('bid-notes').value.trim();
+  const expires = document.getElementById('bid-expires').value || null;
+  if (!name) { toast('Please describe what you want'); return; }
+  state.bids.push({ id: state.nextId++, name, value, cat, offerTier, notes, expires, status: 'pending', date: today(), counterOffer: null, counterNote: null });
+  save();
+  document.getElementById('bid-name').value=''; document.getElementById('bid-value').value='';
+  document.getElementById('bid-notes').value='';
+  toast('Bid submitted ✓'); renderHer();
+}
+
+function acceptBid(id) {
+  const b = state.bids.find(x=>x.id===id);
+  if (!b) return;
+  b.status = 'accepted';
+  // auto-create a promise entry for the agreed exchange
+  const tierMap = { '1':1,'2':2,'3':3,'multi2':1,'multi3':1,'combo':2 };
+  const tier = tierMap[b.offerTier] || 1;
+  const count = b.offerTier === 'multi2' ? 2 : b.offerTier === 'multi3' ? 3 : b.offerTier === 'combo' ? 2 : 1;
+  for (let i=0;i<count;i++) {
+    state.promises.push({ id: state.nextId++, desc: `[Auction] ${b.name}`, tier, date: today(), expiry: null, notes: `Auto-created from accepted bid #${b.id}`, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+  }
+  save(); toast(`Bid accepted — ${count} promise(s) logged`); renderHim(); renderHimAuctionFull();
+}
+function rejectBid(id) {
+  const b = state.bids.find(x=>x.id===id);
+  if (b) { b.status = 'rejected'; save(); toast('Bid rejected'); renderHim(); renderHimAuctionFull(); }
+}
+function openCounter(id) {
+  const b = state.bids.find(x=>x.id===id);
+  if (!b) return;
+  currentCounterId = id;
+  document.getElementById('counter-bid-name').textContent = b.name;
+  document.getElementById('counter-offer').value = '';
+  document.getElementById('counter-note').value = '';
+  openModal('counter-modal');
+}
+function counterBid() {
+  const b = state.bids.find(x=>x.id===currentCounterId);
+  if (!b) return;
+  b.status = 'countered';
+  b.counterOffer = document.getElementById('counter-offer').value.trim();
+  b.counterNote = document.getElementById('counter-note').value.trim();
+  save(); closeModal('counter-modal'); toast('Counter sent'); renderHim(); renderHimAuctionFull();
+}
+
+// ═══════════════════════════════════════════════
+// CREDIT SCORE
+// ═══════════════════════════════════════════════
+function calcCreditScore() {
+  const all = state.promises;
+  if (all.length === 0) return { score: null, band: null, factors: [], insights: [] };
+
+  const fulfilled = all.filter(p => p.status === 'fulfilled');
+  const pending = all.filter(p => p.status === 'pending');
+  const expired = all.filter(p => p.status === 'expired');
+  const cancelled = all.filter(p => p.status === 'cancelled');
+
+  const total = all.length;
+  const fulfillRate = total > 0 ? fulfilled.length / total : 0;
+  const utilizationRate = pending.length / Math.max(total, 1);
+  const avgRating = fulfilled.length > 0 ? fulfilled.reduce((s,p)=>s+(p.rating||3),0)/fulfilled.length : 3;
+  const ageWeeks = 1; // simplified
+
+  // weighted score
+  const paymentScore = fulfillRate * 0.35 * 850;
+  const debtScore = (1 - Math.min(utilizationRate, 1)) * 0.30 * 850;
+  const utilScore = (1 - Math.min(pending.length / 5, 1)) * 0.15 * 850;
+  const ageScore = Math.min(ageWeeks/52, 1) * 0.10 * 850;
+  const qualityScore = ((avgRating-1)/4) * 0.10 * 850;
+
+  const raw = paymentScore + debtScore + utilScore + ageScore + qualityScore;
+  const score = Math.round(Math.max(300, Math.min(850, raw)));
+
+  let band, color;
+  if (score >= 750) { band = 'Exceptional'; color = '#10b981'; }
+  else if (score >= 670) { band = 'Good'; color = '#3b82f6'; }
+  else if (score >= 580) { band = 'Fair'; color = '#f59e0b'; }
+  else if (score >= 500) { band = 'Poor'; color = '#ef4444'; }
+  else { band = 'Very Poor'; color = '#ef4444'; }
+
+  const factors = [
+    { name: 'Payment history', pct: Math.round(fulfillRate*100), weight: 35, color: fulfillRate>0.8?'#10b981':fulfillRate>0.5?'#f59e0b':'#ef4444' },
+    { name: 'Outstanding debt', pct: Math.round((1-Math.min(utilizationRate,1))*100), weight: 30, color: utilizationRate<0.3?'#10b981':utilizationRate<0.6?'#f59e0b':'#ef4444' },
+    { name: 'Credit utilization', pct: Math.round((1-Math.min(pending.length/5,1))*100), weight: 15, color: '#3b82f6' },
+    { name: 'Account age', pct: Math.round(Math.min(ageWeeks/52,1)*100), weight: 10, color: '#8b5cf6' },
+    { name: 'Quality rating', pct: Math.round(((avgRating-1)/4)*100), weight: 10, color: avgRating>=4?'#10b981':avgRating>=3?'#f59e0b':'#ef4444' },
+  ];
+
+  const insights = [];
+  if (fulfillRate < 0.7) insights.push({ text: `Fulfillment rate is ${Math.round(fulfillRate*100)}% — fulfilling more promises will significantly boost your score.`, color: '#ef4444' });
+  if (pending.length > 3) insights.push({ text: `You have ${pending.length} open promises. High outstanding debt lowers your score.`, color: '#f59e0b' });
+  if (avgRating >= 4.5) insights.push({ text: `Average delivery rating of ${avgRating.toFixed(1)}/5 — excellent quality history.`, color: '#10b981' });
+  if (fulfilled.length === 0) insights.push({ text: 'No fulfilled promises yet. Start delivering to build your score.', color: '#9998b0' });
+  if (score >= 750) insights.push({ text: 'Exceptional score — you qualify for pre-approved bids up to your full tier.', color: '#10b981' });
+
+  // Pre-approval
+  let preapproval;
+  if (!score) preapproval = 0;
+  else if (score >= 750) preapproval = 500;
+  else if (score >= 670) preapproval = 250;
+  else if (score >= 580) preapproval = 100;
+  else preapproval = 0;
+
+  return { score, band, color, factors, insights, preapproval };
+}
+
+// ═══════════════════════════════════════════════
+// RENDER HIM
+// ═══════════════════════════════════════════════
+function renderHim() {
+  const all = state.promises;
+  const fulfilled = all.filter(p=>p.status==='fulfilled');
+  const pending = all.filter(p=>p.status==='pending');
+  const cs = calcCreditScore();
+
+  document.getElementById('hm-total').textContent = all.length;
+  document.getElementById('hm-fulfilled').textContent = fulfilled.length;
+  document.getElementById('hm-outstanding').textContent = pending.length;
+  if (cs.score) {
+    document.getElementById('hm-credit').textContent = cs.score;
+    document.getElementById('hm-credit').style.color = cs.color;
+    document.getElementById('hm-credit-band').textContent = cs.band;
+  }
+
+  // Open promises list
+  const ol = document.getElementById('him-open-list');
+  if (pending.length === 0) {
+    ol.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">No open promises. Log one above.</div></div>`;
+  } else {
+    ol.innerHTML = pending.map(p => `
+      <div class="card promise-item" style="padding:12px">
+        <div class="promise-row">
+          <div class="promise-meta" style="flex:1">
+            <div style="font-size:14px;font-weight:500;color:var(--text)">${esc(p.desc)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace">${p.date}${p.expiry ? ' · expires '+p.expiry : ''}</div>
+          </div>
+          <span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span>
+        </div>
+        <div class="promise-actions">
+          <button class="btn sm red" onclick="cancelPromise(${p.id})">Cancel</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Auction inbox (pending only, brief)
+  const pendingBids = state.bids.filter(b=>b.status==='pending');
+  const ai = document.getElementById('him-auction-inbox');
+  if (pendingBids.length === 0) {
+    ai.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:10px 0">No pending bids from her.</div>`;
+  } else {
+    ai.innerHTML = pendingBids.slice(0,3).map(b => `
+      <div class="auction-card" style="margin-bottom:8px">
+        <div class="auction-header">
+          <div class="auction-name">${CAT_ICONS[b.cat]||'📦'} ${esc(b.name)}</div>
+          <div class="auction-value">$${b.value.toLocaleString()}</div>
+        </div>
+        <div class="auction-offer">Offering: <strong>${offerLabel(b.offerTier)}</strong></div>
+        <div class="auction-footer">
+          <button class="btn sm green" onclick="acceptBid(${b.id})">Accept</button>
+          <button class="btn sm amber" onclick="openCounter(${b.id})">Counter</button>
+          <button class="btn sm red" onclick="rejectBid(${b.id})">Reject</button>
+        </div>
+      </div>`).join('');
+    if (pendingBids.length > 3) ai.innerHTML += `<div style="font-size:12px;color:var(--text3);text-align:center;padding:6px">+${pendingBids.length-3} more in Bids tab</div>`;
+  }
+
+  // Notif dot on bids nav
+  const dot = document.getElementById('him-nav-auctions');
+  const existing = dot.querySelector('.notif-dot-badge');
+  if (existing) existing.remove();
+  if (pendingBids.length > 0) {
+    const d = document.createElement('div'); d.className='notif-dot-badge'; dot.appendChild(d);
+  }
+}
+
+function renderHimAuctionFull() {
+  const el = document.getElementById('him-auction-full');
+  const bids = [...state.bids].sort((a,b)=>a.status==='pending'?-1:1);
+  if (bids.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-text">No bids yet. She'll submit them from her view.</div></div>`;
+    return;
+  }
+  el.innerHTML = bids.map(b => `
+    <div class="auction-card">
+      <div class="auction-header">
+        <div>
+          <div class="auction-name">${CAT_ICONS[b.cat]||'📦'} ${esc(b.name)}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px">${b.date}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="auction-value">$${b.value.toLocaleString()}</div>
+          <span class="badge ${b.status}" style="margin-top:4px;display:inline-block">${b.status}</span>
+        </div>
+      </div>
+      <div class="auction-offer">Offering: <strong>${offerLabel(b.offerTier)}</strong>${b.notes?'<br><span style="color:var(--text3)">'+esc(b.notes)+'</span>':''}</div>
+      ${b.counterOffer ? `<div style="font-size:12px;color:#c4b5fd;background:rgba(139,92,246,0.08);border-radius:6px;padding:8px 10px;margin-bottom:8px">Counter: ${esc(b.counterOffer)}${b.counterNote?'<br>'+esc(b.counterNote):''}</div>` : ''}
+      ${b.status==='pending' ? `
+      <div class="auction-footer">
+        <button class="btn sm green" onclick="acceptBid(${b.id})">Accept</button>
+        <button class="btn sm amber" onclick="openCounter(${b.id})">Counter</button>
+        <button class="btn sm red" onclick="rejectBid(${b.id})">Reject</button>
+      </div>` : ''}
+    </div>`).join('');
+}
+
+function renderLedger() {
+  const tbody = document.getElementById('ledger-body');
+  const all = [...state.promises].sort((a,b)=>a.date>b.date?1:-1);
+  if (all.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">No entries yet.</td></tr>'; return; }
+  let running = 0;
+  const rows = [];
+  for (const p of all) {
+    const pts = TIER_POINTS[p.tier];
+    running += pts; // liability
+    rows.push(`<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:11px">${p.date}</td>
+      <td>${esc(p.desc)}</td>
+      <td><span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span></td>
+      <td style="text-align:right" class="cr">+${pts}</td>
+      <td style="text-align:right"></td>
+      <td style="text-align:right" class="bal">${running}</td>
+    </tr>`);
+    if (p.status === 'fulfilled') {
+      const fpts = TIER_POINTS[p.actualTier||p.tier];
+      running -= fpts;
+      rows.push(`<tr style="opacity:0.7">
+        <td style="font-family:'DM Mono',monospace;font-size:11px">${p.fulfillDate||p.date}</td>
+        <td>✓ ${esc(p.desc)}</td>
+        <td><span class="badge tier-${p.actualTier||p.tier}">${TIER_NAMES[p.actualTier||p.tier]}</span></td>
+        <td style="text-align:right"></td>
+        <td style="text-align:right" class="dr">−${fpts}</td>
+        <td style="text-align:right" class="bal">${running}</td>
+      </tr>`);
+    }
+  }
+  tbody.innerHTML = rows.join('');
+}
+
+function renderCreditReport() {
+  const cs = calcCreditScore();
+  if (!cs.score) {
+    document.getElementById('cr-score').textContent = '—';
+    document.getElementById('cr-band').textContent = 'No data yet';
+    document.getElementById('cr-factors').innerHTML = '<div style="font-size:13px;color:var(--text3)">Log promises to generate a credit report.</div>';
+    document.getElementById('cr-insights').innerHTML = '';
+    return;
+  }
+  document.getElementById('cr-score').textContent = cs.score;
+  document.getElementById('cr-score').style.color = cs.color;
+  document.getElementById('cr-band').textContent = cs.band;
+  document.getElementById('cr-band').style.color = cs.color;
+  // gauge: cover shrinks from right, 0=full cover (score 0), 850=no cover
+  const pct = cs.score / 850;
+  document.getElementById('cr-cover').style.width = (100 - pct*100) + '%';
+
+  document.getElementById('cr-factors').innerHTML = cs.factors.map(f=>`
+    <div class="factor-row">
+      <div class="factor-name">${f.name} <span style="font-size:10px;color:var(--text3)">(${f.weight}%)</span></div>
+      <div class="factor-bar"><div class="factor-fill" style="width:${f.pct}%;background:${f.color}"></div></div>
+      <div class="factor-pct">${f.pct}%</div>
+    </div>`).join('');
+
+  document.getElementById('cr-insights').innerHTML = cs.insights.length
+    ? cs.insights.map(i=>`<div class="insight-item"><div class="insight-dot" style="background:${i.color}"></div>${i.text}</div>`).join('')
+    : '<div style="font-size:13px;color:var(--text3)">Keep fulfilling promises to generate insights.</div>';
+}
+
+// ═══════════════════════════════════════════════
+// RENDER HER
+// ═══════════════════════════════════════════════
+function renderHer() {
+  const all = state.promises;
+  const fulfilled = all.filter(p=>p.status==='fulfilled');
+  const pending = all.filter(p=>p.status==='pending');
+  const cs = calcCreditScore();
+
+  document.getElementById('fm-total').textContent = all.length;
+  document.getElementById('fm-fulfilled').textContent = fulfilled.length;
+  document.getElementById('fm-outstanding').textContent = pending.length;
+  if (cs.score) {
+    document.getElementById('fm-credit').textContent = cs.score;
+    document.getElementById('fm-credit').style.color = cs.color;
+    document.getElementById('fm-credit-band').textContent = cs.band;
+  }
+
+  // Open promises (her view)
+  const ol = document.getElementById('her-open-list');
+  if (pending.length === 0) {
+    ol.innerHTML = `<div class="empty"><div class="empty-icon">✨</div><div class="empty-text">No open promises. Looking good!</div></div>`;
+  } else {
+    ol.innerHTML = pending.map(p=>`
+      <div class="card" style="padding:12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:500;color:var(--text)">${esc(p.desc)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace">promised ${p.date}</div>
+          </div>
+          <span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn sm her" onclick="openFulfillModal(${p.id})">Fulfill →</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Recent bids
+  const rb = document.getElementById('her-recent-bids');
+  const recent = [...state.bids].sort((a,b)=>b.id-a.id).slice(0,3);
+  if (recent.length === 0) {
+    rb.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:10px 0">No bids yet. Go to the Bid tab to submit one.</div>`;
+  } else {
+    rb.innerHTML = recent.map(b=>`
+      <div class="card" style="padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:14px;font-weight:500;color:var(--text)">${CAT_ICONS[b.cat]||'📦'} ${esc(b.name)}</div>
+          <span class="badge ${b.status}">${b.status}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">${offerLabel(b.offerTier)} · $${b.value.toLocaleString()}</div>
+        ${b.counterOffer?`<div style="font-size:12px;color:#c4b5fd;margin-top:6px">Counter: ${esc(b.counterOffer)}</div>`:''}
+      </div>`).join('');
+  }
+
+  // Pre-approval
+  if (cs.score) {
+    document.getElementById('preapproval-amount').textContent = cs.preapproval > 0 ? `$${cs.preapproval} pre-approved` : 'No pre-approval';
+    document.getElementById('preapproval-note').textContent = cs.preapproval > 0 ? `Based on your ${cs.band} credit score of ${cs.score}` : `Improve your score to ${cs.score < 580 ? 580 : 670}+ to unlock pre-approval`;
+  }
+}
+
+function renderHerFulfill() {
+  const pending = state.promises.filter(p=>p.status==='pending');
+  const el = document.getElementById('her-fulfill-list');
+  if (pending.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">No open promises! You're all caught up.</div></div>`;
+    return;
+  }
+  el.innerHTML = pending.map(p=>`
+    <div class="card" style="padding:12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;color:var(--text)">${esc(p.desc)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace">promised ${p.date}${p.expiry?' · expires '+p.expiry:''}</div>
+        </div>
+        <span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span>
+      </div>
+      <button class="btn her sm" onclick="openFulfillModal(${p.id})">Mark as fulfilled →</button>
+    </div>`).join('');
+}
+
+function renderHerBids() {
+  const el = document.getElementById('her-bids-list');
+  const bids = [...state.bids].sort((a,b)=>b.id-a.id);
+  if (bids.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🏷️</div><div class="empty-text">No bids yet. Go to Bid to submit your first one.</div></div>`;
+    return;
+  }
+  el.innerHTML = bids.map(b=>`
+    <div class="auction-card">
+      <div class="auction-header">
+        <div>
+          <div class="auction-name">${CAT_ICONS[b.cat]||'📦'} ${esc(b.name)}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px">${b.date}${b.expires?' · exp '+b.expires:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="auction-value">$${b.value.toLocaleString()}</div>
+          <span class="badge ${b.status}" style="margin-top:4px;display:inline-block">${b.status}</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Offered: ${offerLabel(b.offerTier)}</div>
+      ${b.notes?`<div style="font-size:13px;color:var(--text2);margin-bottom:8px;font-style:italic">"${esc(b.notes)}"</div>`:''}
+      ${b.counterOffer?`<div style="font-size:12px;color:#c4b5fd;background:rgba(139,92,246,0.08);border-radius:6px;padding:8px 10px">His counter: ${esc(b.counterOffer)}${b.counterNote?'<br><span style="color:var(--text3)">'+esc(b.counterNote)+'</span>':''}</div>`:''}
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function today() { return new Date().toISOString().slice(0,10); }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function offerLabel(t) {
+  const map = { '1':'1× Standard','2':'1× Deluxe','3':'1× Premium','multi2':'2× Standard','multi3':'3× Standard','combo':'1× Deluxe + 1× Standard' };
+  return map[t] || t;
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+load();
+// Set today as default for date fields
+document.querySelectorAll('input[type=date]').forEach(el => el.value = today());
+</script>
+</body>
+</html>
