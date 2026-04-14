@@ -437,7 +437,10 @@ tr:last-child td { border-bottom: none; }
 
     <div class="section-head">
       <div class="section-title">My open promises</div>
-      <button class="btn sm her" onclick="openModal('her-promise-modal')">+ Promise</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn sm" onclick="openModal('log-credit-modal')" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:#6ee7b7">+ Credit</button>
+        <button class="btn sm her" onclick="openModal('her-promise-modal')">+ Promise</button>
+      </div>
     </div>
     <div id="her-open-list"></div>
 
@@ -665,6 +668,41 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- Log Credit Modal (spontaneous fulfilled action) -->
+<div class="modal-overlay" id="log-credit-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Log a credit</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:1rem;line-height:1.5">Did something great without being asked? Log it as an instant credit — it goes straight to fulfilled on the ledger.</p>
+    <div class="field">
+      <label>What did you do?</label>
+      <input type="text" id="credit-desc" placeholder="Describe the action..." />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Tier</label>
+        <select id="credit-tier">
+          <option value="1">Tier 1 — Standard</option>
+          <option value="2">Tier 2 — Deluxe</option>
+          <option value="3">Tier 3 — Premium</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Self-rating</label>
+        <select id="credit-rating">
+          <option value="5">⭐⭐⭐⭐⭐ Exceptional</option>
+          <option value="4">⭐⭐⭐⭐ Great</option>
+          <option value="3">⭐⭐⭐ Good</option>
+          <option value="2">⭐⭐ Fair</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn full" onclick="closeModal('log-credit-modal')">Cancel</button>
+      <button class="btn full" onclick="logCredit()" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.35);color:#6ee7b7">Log credit ✓</button>
+    </div>
+  </div>
+</div>
 <script>
 // ═══════════════════════════════════════════════
 // STATE
@@ -1016,6 +1054,25 @@ async function counterBid() {
   } catch(e) { toast('Error saving — check connection'); }
 }
 
+
+// ═══════════════════════════════════════════════
+// LOG CREDIT (spontaneous fulfilled action)
+// ═══════════════════════════════════════════════
+async function logCredit() {
+  const desc = document.getElementById('credit-desc').value.trim();
+  const tier = parseInt(document.getElementById('credit-tier').value);
+  const rating = parseInt(document.getElementById('credit-rating').value);
+  if (!desc) { toast('Please describe what you did'); return; }
+  try {
+    // Insert as a promise then immediately mark fulfilled in one sequence
+    const r = await api('/promises/add', { desc: '[Credit] ' + desc, tier, date: today(), expiry: null, notes: 'Spontaneous credit' });
+    await api('/promises/update', { id: r.id, status: 'fulfilled', fulfill_date: today(), actual_tier: tier, rating, verify_code: 'self-credit' });
+    state.promises.push({ id: r.id, desc: '[Credit] ' + desc, tier, date: today(), expiry: null, notes: 'Spontaneous credit', status: 'fulfilled', fulfillDate: today(), actualTier: tier, rating, verifyCode: 'self-credit' });
+    saveCache(); closeModal('log-credit-modal');
+    document.getElementById('credit-desc').value = '';
+    toast('Credit logged ✓ — ledger updated'); renderHer(); renderHim();
+  } catch(e) { toast('Error saving — check connection'); }
+}
 // ═══════════════════════════════════════════════
 // CREDIT SCORE
 // ═══════════════════════════════════════════════
@@ -1110,6 +1167,7 @@ function renderHim() {
           <span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span>
         </div>
         <div class="promise-actions">
+          <button class="btn sm green" onclick="openFulfillModal(${p.id})">Fulfill ✓</button>
           <button class="btn sm red" onclick="cancelPromise(${p.id})">Cancel</button>
         </div>
       </div>`).join('');
