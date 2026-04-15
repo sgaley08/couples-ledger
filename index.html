@@ -703,6 +703,19 @@ tr:last-child td { border-bottom: none; }
     </div>
   </div>
 </div>
+<!-- Promise Detail Sheet -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="modal-title" style="margin-bottom:0" id="detail-title">Promise</div>
+      <span class="badge" id="detail-status-badge"></span>
+    </div>
+    <div id="detail-body"></div>
+    <div id="detail-actions" class="modal-actions" style="margin-top:1rem"></div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 // STATE
@@ -1056,6 +1069,66 @@ async function counterBid() {
 }
 
 
+
+// ═══════════════════════════════════════════════
+// DETAIL SHEET
+// ═══════════════════════════════════════════════
+function openDetail(id, isHim = false) {
+  const p = state.promises.find(x => x.id == id);
+  if (!p) return;
+  const STATUS_COLOR = { pending: '#f59e0b', fulfilled: '#10b981', cancelled: '#5a5970', expired: '#ef4444' };
+  document.getElementById('detail-title').textContent = p.desc;
+  const badge = document.getElementById('detail-status-badge');
+  badge.textContent = p.status;
+  badge.className = 'badge ' + p.status;
+
+  const rows = [
+    ['Tier', `<span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span>`],
+    ['Date promised', p.date || '—'],
+    ['Expiry', p.expiry || 'None'],
+    ['Notes', p.notes || '—'],
+    p.status === 'fulfilled' ? ['Fulfilled on', p.fulfillDate || '—'] : null,
+    p.status === 'fulfilled' ? ['Actual tier', TIER_NAMES[p.actualTier || p.tier]] : null,
+    p.status === 'fulfilled' ? ['Rating', p.rating ? '⭐'.repeat(p.rating) + ` (${p.rating}/5)` : '—'] : null,
+    p.status === 'fulfilled' ? ['Verify code', p.verifyCode || '—'] : null,
+  ].filter(Boolean);
+
+  document.getElementById('detail-body').innerHTML = `
+    <div style="border:0.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden;margin-bottom:4px">
+      ${rows.map(([k,v], i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;${i>0?'border-top:0.5px solid var(--border)':''}">
+          <span style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace">${k}</span>
+          <span style="font-size:13px;color:var(--text);text-align:right;max-width:60%">${v}</span>
+        </div>`).join('')}
+    </div>`;
+
+  const actions = document.getElementById('detail-actions');
+  if (isHim && p.status === 'pending') {
+    actions.innerHTML = `
+      <button class="btn green" style="flex:1" onclick="closeModal('detail-modal');openFulfillModal(${p.id})">Fulfill ✓</button>
+      <button class="btn red" style="flex:1" onclick="closeModal('detail-modal');confirmDelete(${p.id})">Delete</button>
+      <button class="btn" style="flex:1" onclick="closeModal('detail-modal')">Close</button>`;
+  } else {
+    actions.innerHTML = `<button class="btn full" onclick="closeModal('detail-modal')">Close</button>`;
+  }
+  openModal('detail-modal');
+}
+
+function confirmDelete(id) {
+  const p = state.promises.find(x => x.id == id);
+  if (!p) return;
+  if (!confirm(`Delete "${p.desc}" permanently? This cannot be undone.`)) return;
+  deletePromise(id);
+}
+
+async function deletePromise(id) {
+  try {
+    await api('/promises/delete', { id });
+    state.promises = state.promises.filter(x => x.id != id);
+    saveCache(); toast('Promise deleted'); renderHim();
+  } catch(e) { toast('Error deleting — check connection'); }
+}
+
 // ═══════════════════════════════════════════════
 // LOG CREDIT (spontaneous fulfilled action)
 // ═══════════════════════════════════════════════
@@ -1159,7 +1232,7 @@ function renderHim() {
     ol.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">No open promises. Log one above.</div></div>`;
   } else {
     ol.innerHTML = pending.map(p => `
-      <div class="card promise-item" style="padding:12px">
+      <div class="card promise-item" style="padding:12px;cursor:pointer" onclick="openDetail(${p.id}, true)">
         <div class="promise-row">
           <div class="promise-meta" style="flex:1">
             <div style="font-size:14px;font-weight:500;color:var(--text)">${esc(p.desc)}</div>
@@ -1167,9 +1240,10 @@ function renderHim() {
           </div>
           <span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span>
         </div>
-        <div class="promise-actions">
+        <div class="promise-actions" onclick="event.stopPropagation()">
           <button class="btn sm green" onclick="openFulfillModal(${p.id})">Fulfill ✓</button>
           <button class="btn sm red" onclick="cancelPromise(${p.id})">Cancel</button>
+          <button class="btn sm" onclick="confirmDelete(${p.id})" style="color:var(--red);border-color:rgba(239,68,68,0.2)">Delete</button>
         </div>
       </div>`).join('');
   }
@@ -1244,7 +1318,7 @@ function renderLedger() {
   for (const p of all) {
     const pts = TIER_POINTS[p.tier];
     running += pts; // liability
-    rows.push(`<tr>
+    rows.push(`<tr style="cursor:pointer" onclick="openDetail(${p.id}, true)">
       <td style="font-family:'DM Mono',monospace;font-size:11px">${p.date}</td>
       <td>${esc(p.desc)}</td>
       <td><span class="badge tier-${p.tier}">${TIER_NAMES[p.tier]}</span></td>
