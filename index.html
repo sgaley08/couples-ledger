@@ -757,12 +757,13 @@ async function loadFromDB() {
     }
     // Map DB rows to app state format
     state.promises = (promisesRes.promises || []).map(p => ({
-      id: p.id, desc: p.desc, tier: p.tier, date: p.date, expiry: p.expiry,
+      id: Number(p.id), desc: p.desc, tier: Number(p.tier), date: p.date, expiry: p.expiry,
       notes: p.notes, status: p.status, fulfillDate: p.fulfill_date,
-      actualTier: p.actual_tier, rating: p.rating, verifyCode: p.verify_code
+      actualTier: p.actual_tier ? Number(p.actual_tier) : null,
+      rating: p.rating ? Number(p.rating) : null, verifyCode: p.verify_code
     }));
     state.bids = (bidsRes.bids || []).map(b => ({
-      id: b.id, name: b.name, value: b.value, cat: b.category,
+      id: Number(b.id), name: b.name, value: Number(b.value), cat: b.category,
       offerTier: b.offer_tier, notes: b.notes, expires: b.expires,
       status: b.status, date: b.date, counterOffer: b.counter_offer, counterNote: b.counter_note
     }));
@@ -932,7 +933,7 @@ async function addPromise() {
   if (!desc) { toast('Please add a description'); return; }
   try {
     const r = await api('/promises/add', { desc, tier, date, expiry, notes });
-    state.promises.push({ id: r.id, desc, tier, date, expiry, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+    state.promises.push({ id: Number(r.id), desc, tier, date, expiry, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
     saveCache(); closeModal('add-promise-modal');
     document.getElementById('p-desc').value=''; document.getElementById('p-notes').value='';
     toast('Promise logged'); renderHim();
@@ -946,7 +947,7 @@ async function addHerPromise() {
   if (!desc) { toast('Please describe the promise'); return; }
   try {
     const r = await api('/promises/add', { desc, tier, date, expiry: null, notes: '' });
-    state.promises.push({ id: r.id, desc, tier, date, expiry: null, notes: '', status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+    state.promises.push({ id: Number(r.id), desc, tier, date, expiry: null, notes: '', status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
     saveCache(); closeModal('her-promise-modal');
     document.getElementById('hp-desc').value='';
     toast('Promise recorded ✓'); renderHer();
@@ -954,7 +955,7 @@ async function addHerPromise() {
 }
 
 function openFulfillModal(id) {
-  const p = state.promises.find(x=>x.id===id);
+  const p = state.promises.find(x=>x.id==id);
   if (!p) return;
   currentFulfillId = id;
   document.getElementById('fulfill-promise-desc').textContent = p.desc;
@@ -964,7 +965,7 @@ function openFulfillModal(id) {
   openModal('fulfill-modal');
 }
 async function fulfillPromise() {
-  const p = state.promises.find(x=>x.id===currentFulfillId);
+  const p = state.promises.find(x=>x.id==currentFulfillId);
   if (!p) return;
   const actual_tier = parseInt(document.getElementById('fulfill-tier').value);
   const verify_code = document.getElementById('fulfill-code').value.trim();
@@ -978,7 +979,7 @@ async function fulfillPromise() {
 }
 
 async function cancelPromise(id) {
-  const p = state.promises.find(x=>x.id===id);
+  const p = state.promises.find(x=>x.id==id);
   if (!p) return;
   try {
     await api('/promises/update', { id: p.id, status: 'cancelled' });
@@ -999,7 +1000,7 @@ async function submitBid() {
   if (!name) { toast('Please describe what you want'); return; }
   try {
     const r = await api('/bids/add', { name, value, category, offer_tier, notes, expires, date: today() });
-    state.bids.push({ id: r.id, name, value, cat: category, offerTier: offer_tier, notes, expires, status: 'pending', date: today(), counterOffer: null, counterNote: null });
+    state.bids.push({ id: Number(r.id), name, value, cat: category, offerTier: offer_tier, notes, expires, status: 'pending', date: today(), counterOffer: null, counterNote: null });
     saveCache();
     document.getElementById('bid-name').value=''; document.getElementById('bid-value').value='';
     document.getElementById('bid-notes').value='';
@@ -1008,7 +1009,7 @@ async function submitBid() {
 }
 
 async function acceptBid(id) {
-  const b = state.bids.find(x=>x.id===id);
+  const b = state.bids.find(x=>x.id==id);
   if (!b) return;
   const tierMap = { '1':1,'2':2,'3':3,'multi2':1,'multi3':1,'combo':2 };
   const tier = tierMap[b.offerTier] || 1;
@@ -1020,13 +1021,13 @@ async function acceptBid(id) {
       const desc = `[Auction] ${b.name}`;
       const notes = `Auto-created from accepted bid #${b.id}`;
       const r = await api('/promises/add', { desc, tier, date: today(), expiry: null, notes });
-      state.promises.push({ id: r.id, desc, tier, date: today(), expiry: null, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
+      state.promises.push({ id: Number(r.id), desc, tier, date: today(), expiry: null, notes, status: 'pending', fulfillDate: null, actualTier: null, rating: null, verifyCode: null });
     }
     saveCache(); toast(`Bid accepted — ${count} promise(s) logged`); renderHim(); renderHimAuctionFull();
   } catch(e) { toast('Error saving — check connection'); }
 }
 async function rejectBid(id) {
-  const b = state.bids.find(x=>x.id===id);
+  const b = state.bids.find(x=>x.id==id);
   if (!b) return;
   try {
     await api('/bids/update', { id: b.id, status: 'rejected' });
@@ -1034,7 +1035,7 @@ async function rejectBid(id) {
   } catch(e) { toast('Error saving — check connection'); }
 }
 function openCounter(id) {
-  const b = state.bids.find(x=>x.id===id);
+  const b = state.bids.find(x=>x.id==id);
   if (!b) return;
   currentCounterId = id;
   document.getElementById('counter-bid-name').textContent = b.name;
@@ -1043,7 +1044,7 @@ function openCounter(id) {
   openModal('counter-modal');
 }
 async function counterBid() {
-  const b = state.bids.find(x=>x.id===currentCounterId);
+  const b = state.bids.find(x=>x.id==currentCounterId);
   if (!b) return;
   const counter_offer = document.getElementById('counter-offer').value.trim();
   const counter_note = document.getElementById('counter-note').value.trim();
@@ -1067,7 +1068,7 @@ async function logCredit() {
     // Insert as a promise then immediately mark fulfilled in one sequence
     const r = await api('/promises/add', { desc: '[Credit] ' + desc, tier, date: today(), expiry: null, notes: 'Spontaneous credit' });
     await api('/promises/update', { id: r.id, status: 'fulfilled', fulfill_date: today(), actual_tier: tier, rating, verify_code: 'self-credit' });
-    state.promises.push({ id: r.id, desc: '[Credit] ' + desc, tier, date: today(), expiry: null, notes: 'Spontaneous credit', status: 'fulfilled', fulfillDate: today(), actualTier: tier, rating, verifyCode: 'self-credit' });
+    state.promises.push({ id: Number(r.id), desc: '[Credit] ' + desc, tier, date: today(), expiry: null, notes: 'Spontaneous credit', status: 'fulfilled', fulfillDate: today(), actualTier: tier, rating, verifyCode: 'self-credit' });
     saveCache(); closeModal('log-credit-modal');
     document.getElementById('credit-desc').value = '';
     toast('Credit logged ✓ — ledger updated'); renderHer(); renderHim();
