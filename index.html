@@ -1108,6 +1108,10 @@ function openDetail(id, isHim = false) {
       <button class="btn green" style="flex:1" onclick="closeModal('detail-modal');openFulfillModal(${p.id})">Fulfill ✓</button>
       <button class="btn red" style="flex:1" onclick="closeModal('detail-modal');confirmDelete(${p.id})">Delete</button>
       <button class="btn" style="flex:1" onclick="closeModal('detail-modal')">Close</button>`;
+  } else if (isHim) {
+    actions.innerHTML = `
+      <button class="btn red" style="flex:1" onclick="closeModal('detail-modal');confirmDelete(${p.id})">Delete</button>
+      <button class="btn" style="flex:1" onclick="closeModal('detail-modal')">Close</button>`;
   } else {
     actions.innerHTML = `<button class="btn full" onclick="closeModal('detail-modal')">Close</button>`;
   }
@@ -1329,12 +1333,22 @@ function renderLedger() {
     if (p.status === 'fulfilled') {
       const fpts = TIER_POINTS[p.actualTier||p.tier];
       running -= fpts;
-      rows.push(`<tr style="opacity:0.7">
+      rows.push(`<tr style="opacity:0.7;cursor:pointer" onclick="openDetail(${p.id}, true)">
         <td style="font-family:'DM Mono',monospace;font-size:11px">${p.fulfillDate||p.date}</td>
         <td>✓ ${esc(p.desc)}</td>
         <td><span class="badge tier-${p.actualTier||p.tier}">${TIER_NAMES[p.actualTier||p.tier]}</span></td>
         <td style="text-align:right"></td>
         <td style="text-align:right" class="dr">−${fpts}</td>
+        <td style="text-align:right" class="bal">${running}</td>
+      </tr>`);
+    }
+    if (p.status === 'cancelled') {
+      rows.push(`<tr style="opacity:0.35;cursor:pointer;text-decoration:line-through" onclick="openDetail(${p.id}, true)">
+        <td style="font-family:'DM Mono',monospace;font-size:11px">${p.date}</td>
+        <td>✕ ${esc(p.desc)}</td>
+        <td><span class="badge cancelled">Cancelled</span></td>
+        <td style="text-align:right" class="cr">+${pts}</td>
+        <td style="text-align:right" class="dr">−${pts}</td>
         <td style="text-align:right" class="bal">${running}</td>
       </tr>`);
     }
